@@ -1,1 +1,1 @@
-Results of mirnamotif algorithms
+Results of mirnamotif software

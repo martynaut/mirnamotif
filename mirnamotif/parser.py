@@ -17,12 +17,11 @@ def fold(sequence_to_fold):
     return sequence_to_fold[m.start():m.end()]
 
 
-def parse(file_name):
+def parse_sh(file_name):
     """
-    prase parses pre-miRNA sequnces for mmu ath and hsa.
+    parse_sh parses pre-miRNA sequences for mmu ath and hsa.
 
-    sequences from miRBase to whole molecules
-    fasta sequences or terminal loop only
+    sequences from miRBase hairpin.fa file
     input: file_name with pre-miRNA sequences
     generates six files
     output: 0
@@ -50,14 +49,35 @@ def parse(file_name):
                                    fold(str(fasta.seq)) + '\n')
                 output_sh_hsa.write(fasta.id + ' ' +
                                     str(fasta.seq) + '\n')
-    output_l_mmu.close()
-    output_sh_mmu.close()
-    output_l_ath.close()
-    output_sh_ath.close()
-    output_l_hsa.close()
-    output_sh_hsa.close()
+    return 0
+
+
+def parse_mature(file_name):
+    """
+    parse_mature parses mature miRNA sequences for mmu ath and hsa.
+
+    sequences from miRBase mature.fa file
+    input: file_name with mature miRNA sequences
+    generates three files
+    output: 0
+    """
+    fasta_sequences = SeqIO.parse(open(file_name), 'fasta')
+    with open('miR_mature_mmu', 'w') as output_mature_mmu, \
+            open('miR_mature_ath', 'w') as output_mature_ath, \
+            open('miR_mature_hsa', 'w') as output_mature_hsa:
+        for fasta in fasta_sequences:
+            if fasta.id[:3] == 'mmu':
+                output_mature_mmu.write(fasta.id + ' ' +
+                                        str(fasta.seq) + '\n')
+            if fasta.id[:3] == 'ath':
+                output_mature_ath.write(fasta.id + ' ' +
+                                        str(fasta.seq) + '\n')
+            if fasta.id[:3] == 'hsa':
+                output_mature_hsa.write(fasta.id + ' ' +
+                                        str(fasta.seq) + '\n')
     return 0
 
 
 if __name__ == "__main__":
-    parse('hairpin.fa')
+    parse_sh('hairpin.fa')
+    parse_mature('mature.fa')
