@@ -10,6 +10,10 @@ that gives researchers the opportunity to analyze known pre-miRNAs sequences
 for the presence of specific motifs that can be recognized by protein regulators 
 of miRNA biogenesis.
 
+## Licence
+
+This application is open-source under MIT License (see LICENSE file)
+
 ## Availability
 
 ### Webserver
