@@ -2,19 +2,26 @@
 
 from weblogolib import *
 import subprocess
-import pdb
 import xml.etree.ElementTree
 import numpy as np
+import os
+
+
+def ensure_dir(file_path):
+    directory = os.path.dirname(file_path+'/')
+    print(directory)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
 
 
 def process_input(data, database):
     list_of_seq = data.split()
-    all_ok = True
     for seq_nr in range(0, len(list_of_seq)):
         this_ok = False
         if type(list_of_seq[seq_nr]) == bytes:
             list_of_seq[seq_nr] = list_of_seq[seq_nr].decode("utf-8")
         if list_of_seq[seq_nr][0:3] in ['hsa', 'mmu', 'ath']:
+            filename = None
             if database == 'loops':
                 filename = 'miR_loops_'+list_of_seq[seq_nr][0:3]
             if database == 'sh':
@@ -38,10 +45,11 @@ def process_input(data, database):
                 else:
                     seq.replace('T', 'U')
             list_of_seq[seq_nr] = seq
+
     return list_of_seq
 
 
-def motiffind(list_of_seq=[], direction='f', folder=''):
+def motiffind(list_of_seq=None, direction='f', folder='', negative_file=''):
     """
     Find potential motif in provided sequences.
 
@@ -51,7 +59,8 @@ def motiffind(list_of_seq=[], direction='f', folder=''):
     output:
     file with proposed motifs
     """
-    # fasta!
+    if list_of_seq is None:
+        list_of_seq = []
     status = False
     if direction == 'f':
         direction = ''
@@ -61,20 +70,21 @@ def motiffind(list_of_seq=[], direction='f', folder=''):
     counter = 1
     for seq in list_of_seq:
         fasta_from_list = fasta_from_list+'>seq'+str(counter)+'\n'+seq+'\n'
-        counter += counter
-    with open(folder+'_input.fa', 'a') as input_file:
+        counter = counter + 1
+    ensure_dir(folder)
+    with open(folder+'/input.fa', 'w') as input_file:
         input_file.write(fasta_from_list)
-    command = '../meme_4.11.4/scripts/dreme-py3 -o ' + \
-              folder + ' -p ' + folder + '_input.fa -rna' + direction + \
-              ' -n ./mirnamotif/hairpin.fa -e 0.1 -g 1000 -mink 2'
+    command = '../meme_4.11.4/scripts/dreme-py3 -oc ' + \
+              folder + ' -p ' + folder + '/input.fa -rna' + direction + \
+              ' -n ' + negative_file + ' -e 0.1 -g 1000 -mink 2'
     subprocess.call(command.split())
     result_raw = xml.etree.ElementTree.parse(folder+'/dreme.xml').getroot()
     motifs_results = []
     for motifs in result_raw.findall('motifs'):
         for motif in motifs.findall('motif'):
-            PFM = []
+            pfm = []
             for position in motif.findall('pos'):
-                PFM.append([float(position.get('A')),
+                pfm.append([float(position.get('A')),
                             float(position.get('C')),
                             float(position.get('G')),
                             float(position.get('U'))])
@@ -83,7 +93,7 @@ def motiffind(list_of_seq=[], direction='f', folder=''):
                 'id': motif.get('id'),
                 'len': motif.get('length'),
                 'pvalue': motif.get('pvalue'),
-                'logo_table': PFM})
+                'logo_table': pfm})
 
     print(motifs_results)
     for motif in motifs_results:
@@ -111,6 +121,6 @@ def motiffind(list_of_seq=[], direction='f', folder=''):
         file.write('length of the motif = ' + motif['len'] + '\n')
         file.write('pvalue = ' + motif['pvalue'] + '\n')
     file.close()
-    if list_of_motifs != []:
+    if list_of_motifs:
         status = True
-    return (folder+'/'+'results.txt', list_of_motifs, status)
+    return folder+'/results.txt', list_of_motifs, status

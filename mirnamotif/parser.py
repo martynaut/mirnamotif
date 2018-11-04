@@ -1,7 +1,7 @@
 """parser parses pre-miRNA and mature miRNAs sequences from miRBase."""
 
 from Bio import SeqIO
-from paser_loop_localization import create_loc
+from parser_loop_localization import create_loc
 
 
 def parse_sh(file_name):

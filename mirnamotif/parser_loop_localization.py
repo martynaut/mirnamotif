@@ -33,14 +33,12 @@ def create_loc():
     coordinates['Alias'] = coordinates['ids'].str.extract('Alias=(.*?);', expand=False)
     coordinates['Name'] = coordinates['ids'].str.extract('Name=(.*?)(?:$|;)', expand=False)
     coordinates['From'] = coordinates['ids'].str.extract('Derives_from=(.*)', expand=False)
-    # print(coordinates.head())
 
     loc_info = coordinates
     sequences_ath = pd.read_csv('./miR_sh_ath', sep=' ', header=None, names=['Name', 'seq'])
     sequences_mmu = pd.read_csv('./miR_sh_mmu', sep=' ', header=None, names=['Name', 'seq'])
     sequences_hsu = pd.read_csv('./miR_sh_hsa', sep=' ', header=None, names=['Name', 'seq'])
     sequences = pd.concat([sequences_ath, sequences_hsu, sequences_mmu])
-    # print(sequences.head())
     pre_mirbase = loc_info[loc_info['type'] == 'miRNA_primary_transcript'].copy()
 
     matures = loc_info[loc_info['type'] == 'miRNA'].copy()
@@ -55,35 +53,29 @@ def create_loc():
 
     matures['Name'] = matures['Name_pre'].map(str) + matures['Name'].str.extract(
         '(\-[35]{1}p)', expand=False).fillna('')
-    print(matures.head())
     joined = pre_mirbase.join(matures.set_index('From'), on='ID', how='left', rsuffix='_mirna')
-    print(joined.head())
     localizations = pd.DataFrame(columns=['Name', 'seq'])
 
-    # print(localizations)
-    # How many miRNAs have two miRNAs from single pre
     joined = joined[~joined['arm'].isna()]
-    joined = joined[~joined['ID_mirna'].str.contains('_')]
+    joined = joined[joined['start'] <= joined['start_mirna']]
+    joined = joined[joined['stop'] >= joined['stop_mirna']]
     temp = pd.DataFrame(joined.groupby('ID')['Name', 'stop_mirna', 'arm'].agg({'Name': 'count',
                                                                                'stop_mirna': 'count',
                                                                                'arm': 'sum'}))
     temp.columns = ['how many mature mirnas in pre', 'count', 'concat']
-    print(temp.groupby('concat').count())
     both_mirnas = temp[(temp['concat'].str.contains('3p')) &
                        (temp['concat'].str.contains('5p'))]
     single_mirna = temp[~((temp['concat'].str.contains('3p')) &
                         (temp['concat'].str.contains('5p')))]
-    print(single_mirna.shape, both_mirnas.shape)
+    joined.to_csv('temp_joined.csv', sep=';')
     joined_both = joined[joined['ID'].isin(both_mirnas.index.values)]
     joined_single = joined[joined['ID'].isin(single_mirna.index.values)]
-    # print(joined_both.head())
 
     for premirna in joined_both['ID'].unique():
 
         data = joined_both[joined_both['ID'] == premirna].reset_index()
         sequence = sequences[sequences['Name'] == data['Name'][0]]['seq'].values[0]
         if data.shape[0] > 2:
-            print(data)
             data_5_plus = data[(data['arm'] == '5p') & (data['-/+'] == '+')]
             data_5_minus = data[(data['arm'] == '5p') & (data['-/+'] == '-')]
             data_3_plus = data[(data['arm'] == '3p') & (data['-/+'] == '+')]
@@ -97,7 +89,7 @@ def create_loc():
                                                           'start_mirna': 'min',
                                                           'stop_mirna': 'max',
                                                           })
-            print(data_5_plus)
+
             data_5_minus = data_5_minus.groupby('arm').agg({'start': 'first',
                                                             'stop': 'first',
                                                             '-/+': 'first',
@@ -107,7 +99,7 @@ def create_loc():
                                                             'start_mirna': 'min',
                                                             'stop_mirna': 'max',
                                                             })
-            print(data_5_minus)
+
             data_3_plus = data_3_plus.groupby('arm').agg({'start': 'first',
                                                           'stop': 'first',
                                                           '-/+': 'first',
@@ -117,7 +109,7 @@ def create_loc():
                                                           'start_mirna': 'min',
                                                           'stop_mirna': 'max',
                                                           })
-            print(data_3_plus)
+
             data_3_minus = data_3_minus.groupby('arm').agg({'start': 'first',
                                                             'stop': 'first',
                                                             '-/+': 'first',
@@ -128,9 +120,7 @@ def create_loc():
                                                             'stop_mirna': 'max',
                                                             })
             data = pd.concat([data_3_minus, data_3_plus, data_5_minus, data_5_plus]).reset_index()
-            print(data_3_minus)
-            print(premirna)
-            print(data)
+
         coordinates = []
         coordinates += list(data['start'].unique())
         coordinates += list(data['stop'].unique())
@@ -138,11 +128,11 @@ def create_loc():
         coordinates += list(data['stop_mirna'].unique())
         coordinates = list(map(int, coordinates))
         coordinates = sorted(coordinates)
-        # print(coordinates)
+
         if data.loc[0, '-/+'] == '+':
             localizations = localizations.append(
                 {'Name': data.loc[0, 'Name'],
-                 'seq': sequence[coordinates[2] - coordinates[0] + 1: coordinates[3] - coordinates[0] - 1]
+                 'seq': sequence[coordinates[2] - coordinates[0] + 1: coordinates[3] - coordinates[0]]
                  }, ignore_index=True
             )
 
@@ -150,7 +140,7 @@ def create_loc():
 
             localizations = localizations.append(
                 {'Name': data.loc[0, 'Name'],
-                 'seq': sequence[coordinates[2] - coordinates[0] + 1: coordinates[3] - coordinates[0] - 1]
+                 'seq': sequence[coordinates[-1] - coordinates[-3] + 1: coordinates[-1] - coordinates[-4]]
                  }, ignore_index=True
             )
 
@@ -160,7 +150,6 @@ def create_loc():
 
     for premirna in joined_single['ID'].unique():
         temp_coordinates = []
-        # print(premirna)
         data = joined_single[joined_single['ID'] == premirna].reset_index()
         sequence = sequences[sequences['Name'] == data['Name'][0]]['seq'].values[0]
         data = data.groupby('arm').agg({'start': 'first',
@@ -172,7 +161,7 @@ def create_loc():
                                         'start_mirna': 'min',
                                         'stop_mirna': 'max',
                                         }).reset_index()
-        print(data)
+
         coordinates = []
         coordinates += list(data['start'].unique())
         coordinates += list(data['stop'].unique())
@@ -180,7 +169,7 @@ def create_loc():
         coordinates += list(data['stop_mirna'].unique())
         coordinates = list(map(int, coordinates))
         coordinates = sorted(coordinates)
-        print(coordinates)
+
         if (abs(coordinates[0] - coordinates[1]) < abs(coordinates[2] - coordinates[3])
                 and data.loc[0, '-/+'] == '+'):
             known = 5
@@ -191,15 +180,14 @@ def create_loc():
             known = 3
         else:
             known = 5
-        print(sequences[sequences['Name'] == data['Name'][0]]['seq'].values[0])
+
         structure = RNA.fold(sequences[sequences['Name'] == data['Name'][0]]['seq'].values[0])[0]
-        print(structure)
 
         if data.loc[0, '-/+'] == '+':
             if known == 5:
                 predicted_start = coordinates[1] - coordinates[0] + 1
                 pre_mirna = str(structure[:predicted_start]).count('(')
-                mirna_len = coordinates[2] - coordinates[1]
+                mirna_len = coordinates[2] - coordinates[1] + 1
                 mirna_len_com = str(
                     structure[predicted_start:predicted_start+mirna_len+1]).count('(')
                 closing = 0
@@ -214,49 +202,40 @@ def create_loc():
                     closing2 = str(structure[start_second_strand2:]).count(')')
 
                 stop_second_strand = start_second_strand2
-                start_second_strand = start_second_strand + 2 + coordinates[0]
-                stop_second_strand = stop_second_strand + 3 + coordinates[0]
+                start_second_strand = start_second_strand + 1 + coordinates[0]
+                stop_second_strand = stop_second_strand + 2 + coordinates[0]
                 temp_coordinates = [start_second_strand, stop_second_strand]
                 temp_coordinates.sort()
-                # print(co
-                #
-                #
-                # ordinates)
+
             if known == 3:
                 predicted_start = coordinates[2] - coordinates[0] + 1
                 pre_mirna = str(structure[predicted_start:]).count(')')
 
-                mirna_len = coordinates[2] - coordinates[1]
-                # print(mirna_len)
+                mirna_len = coordinates[2] - coordinates[1] + 1
                 mirna_len_com = str(
                     structure[predicted_start-mirna_len:predicted_start]).count(')')
 
                 closing = 0
                 start_second_strand = 0
                 while closing < pre_mirna:
-                    # print(closing)
                     start_second_strand = start_second_strand + 1
                     closing = str(structure[:start_second_strand]).count('(')
                 closing2 = 0
                 start_second_strand2 = 0
                 while closing2 < pre_mirna+mirna_len_com:
-                    # print(closing2)
                     start_second_strand2 = start_second_strand2 + 1
                     closing2 = str(structure[:start_second_strand2]).count('(')
-                # print(predicted_start)
-                # print(structure['structure'].str[predicted_start:])
-                # print(structure['structure'].str[:start_second_strand])
                 stop_second_strand = start_second_strand2
-                start_second_strand = start_second_strand + 2 + coordinates[0]
-                stop_second_strand = stop_second_strand + 2 + coordinates[0]
+                start_second_strand = start_second_strand + 1 + coordinates[0]
+                stop_second_strand = stop_second_strand + 1 + coordinates[0]
                 temp_coordinates = [start_second_strand, stop_second_strand]
                 temp_coordinates.sort()
-                # print(temp_coordinates)
+
         if data.loc[0, '-/+'] == '-':
             if known == 5:
                 predicted_start = coordinates[3] - coordinates[2]
                 pre_mirna = str(structure[:predicted_start]).count('(')
-                mirna_len = coordinates[2] - coordinates[1]
+                mirna_len = coordinates[2] - coordinates[1] - 1
                 mirna_len_com = str(
                     structure[predicted_start:predicted_start+mirna_len+1]).count('(')
 
@@ -270,17 +249,14 @@ def create_loc():
                 while closing2 < pre_mirna+mirna_len_com:
                     start_second_strand2 = start_second_strand2 - 1
                     closing2 = str(structure[start_second_strand2:]).count(')')
-                # print(predicted_start)
-                # print(structure['structure'].str[:predicted_start])
-                # print(structure['structure'].str[start_second_strand:])
+
                 stop_second_strand = start_second_strand2
                 start_second_strand = coordinates[3] - start_second_strand - 1
                 stop_second_strand = coordinates[3] - stop_second_strand - 1
                 temp_coordinates = [start_second_strand, stop_second_strand]
                 temp_coordinates.sort()
-                # print(coordinates)
+
             if known == 3:
-                # print(coordinates)
                 predicted_start = coordinates[3] - coordinates[1]
                 pre_mirna = str(structure[predicted_start:]).count(')')
                 mirna_len = coordinates[2] - coordinates[1]
@@ -299,15 +275,13 @@ def create_loc():
                 while closing2 < pre_mirna+mirna_len_com:
                     start_second_strand2 = start_second_strand2 + 1
                     closing2 = str(structure[:start_second_strand2]).count('(')
-                # print(predicted_start)
-                # print(structure['structure'].str[predicted_start:])
-                # print(structure['structure'].str[:start_second_strand])
+
                 stop_second_strand = start_second_strand2
-                start_second_strand = coordinates[3] - start_second_strand
+                start_second_strand = coordinates[3] - start_second_strand - 1
                 stop_second_strand = coordinates[3] - stop_second_strand - 1
                 temp_coordinates = [start_second_strand, stop_second_strand]
                 temp_coordinates.sort()
-                # print(coordinates)
+
         coordinates = []
         coordinates += list(data['start'].unique())
         coordinates += list(data['stop'].unique())
@@ -321,21 +295,20 @@ def create_loc():
 
             localizations = localizations.append(
                 {'Name': data.loc[0, 'Name'],
-                 'seq': sequence[coordinates[2] - coordinates[0] + 1: coordinates[3] - coordinates[0] - 1]
+                 'seq': sequence[coordinates[2] - coordinates[0] + 1: coordinates[3] - coordinates[0]]
                  }, ignore_index=True
             )
 
         elif data.loc[0, '-/+'] == '-':
             localizations = localizations.append(
                 {'Name': data.loc[0, 'Name'],
-                 'seq': sequence[coordinates[2] - coordinates[0] + 1: coordinates[3] - coordinates[0] - 1]
+                 'seq': sequence[coordinates[-1] - coordinates[-3] + 1: coordinates[-1] - coordinates[-4]]
                  }, ignore_index=True
             )
         else:
             print('not all records has the same orientation')
             return 1
-    print('finished with localizations')
-
+    localizations = localizations.sort_values('Name')
     localizations[localizations['Name'].str.startswith('hsa')].to_csv('./miR_loops_hsa', sep=' ',
                                                                       index=False, header=False)
     localizations[localizations['Name'].str.startswith('mmu')].to_csv('./miR_loops_mmu', sep=' ',

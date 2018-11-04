@@ -2,12 +2,19 @@
 
 import re
 import time
+import os
+
+
+def ensure_dir(file_path):
+    directory = os.path.dirname(file_path)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
 
 
 def search(seq1='', seq2='', seq_type='loops', direction='f',
            overlap=True, database='hsa', email=''):
     """
-    search searches for motifs(seq1, seq2) in pre-miRNAs.
+    search function searches for motifs(seq1, seq2) in pre-miRNAs.
 
     input: seq1 - first or only motif
     seq2 - second motif
@@ -56,6 +63,8 @@ def search(seq1='', seq2='', seq_type='loops', direction='f',
 
     hour = str(time.strftime("%H_%M_%S"))
     hourf = str(time.strftime("%H:%M:%S"))
+
+    ensure_dir('./results/')
 
     filename = ('./results/'+email + '_' + str(time.strftime("%d_%m_%Y")) +
                 '_' + hour + '.txt')
@@ -119,8 +128,10 @@ def search(seq1='', seq2='', seq_type='loops', direction='f',
     else:
         file2.write('database: Arabidopsis thaliana\line ')
     file2.write(email + '\line ' * 3)
-
-    mirnas = open('./mirnamotif/miR_' + seq_type + '_' + database)
+    if seq_type in ['sh', 'loops']:
+        mirnas = open('./mirnamotif/miR_' + seq_type + '_' + database)
+    else:
+        mirnas = open('./mirnamotif/miR_mature_' + database)
     if seq1[::-1] == seq1 and seq2[::-1] == seq2:
         direction = 'f'
         file.write('sequence(s) is/are palindromic\n')
@@ -139,7 +150,9 @@ def search(seq1='', seq2='', seq_type='loops', direction='f',
             sequence = line.split(' ')[1][:-1]
             if bool(re.search(seq1_reg, sequence)) or bool(re.search(seq1_reg, sequence[::-1])):
                 file.write(name + ' ' + sequence + '\n')
-                file2.write(name + ' ' + re.sub(r'('+seq1_reg_rtf+r')', r'\cf2\1\cf1', re.sub(r'('+seq1_reg_rev_rtf+r')', r'\cf2\1\cf1', sequence)) + '\line ')
+                file2.write(name + ' ' + re.sub(r'('+seq1_reg_rtf+r')',
+                                                r'\cf2\1\cf1', re.sub(r'('+seq1_reg_rev_rtf+r')',
+                                                                      r'\cf2\1\cf1', sequence)) + '\line ')
                 status = True
     elif direction == 'f' and overlap is True:
         first = []
@@ -148,7 +161,7 @@ def search(seq1='', seq2='', seq_type='loops', direction='f',
         for line in mirnas:
             name = line.split(' ')[0]
             sequence = line.split(' ')[1][:-1]
-            if (bool(re.search(seq1_reg, sequence)) and bool(re.search(seq2_reg, sequence))):
+            if bool(re.search(seq1_reg, sequence)) and bool(re.search(seq2_reg, sequence)):
                 together.append(name + ' ' + sequence + '\n')
                 status = True
             elif bool(re.search(seq1_reg, sequence)):
@@ -171,7 +184,9 @@ def search(seq1='', seq2='', seq_type='loops', direction='f',
         file2.write('\line \line together: \line \line ')
         for i in together:
             file.write(i)
-            file2.write(re.sub(r'('+seq1_reg_rtf+r')', r'\cf2\1\cf1', (re.sub(r'('+seq2_reg_rtf+r')', r'\cf2\1\cf1', i))).replace('\n', '\line '))
+            file2.write(re.sub(r'('+seq1_reg_rtf+r')', r'\cf2\1\cf1',
+                               (re.sub(r'('+seq2_reg_rtf+r')', r'\cf2\1\cf1',
+                                       i))).replace('\n', '\line '))
     elif direction == 'f' and overlap is False:
         first = []
         second = []
@@ -179,7 +194,7 @@ def search(seq1='', seq2='', seq_type='loops', direction='f',
         for line in mirnas:
             name = line.split(' ')[0]
             sequence = line.split(' ')[1][:-1]
-            if (bool(re.search(seq1_reg, sequence) and bool(re.search(seq2_reg, sequence)))):
+            if bool(re.search(seq1_reg, sequence) and bool(re.search(seq2_reg, sequence))):
                 f = re.compile(seq1_reg)
                 s = re.compile(seq2_reg)
                 where_f = f.search(sequence)
@@ -208,7 +223,9 @@ def search(seq1='', seq2='', seq_type='loops', direction='f',
         file2.write('\line \line together: \line \line ')
         for i in together:
             file.write(i)
-            file2.write(re.sub(r'('+seq1_reg_rtf+r')', r'\cf2\1\cf1', (re.sub(r'('+seq2_reg_rtf+r')', r'\cf2\1\cf1', i))).replace('\n', '\line '))
+            file2.write(re.sub(r'('+seq1_reg_rtf+r')', r'\cf2\1\cf1',
+                               (re.sub(r'('+seq2_reg_rtf+r')',
+                                       r'\cf2\1\cf1', i))).replace('\n', '\line '))
     elif direction == 'fr' and overlap is True:
         if seq1[::-1] == seq1:
             file.write('sequence 1 is palindromic\n')
@@ -238,12 +255,16 @@ def search(seq1='', seq2='', seq_type='loops', direction='f',
         file2.write('\line \line first: ' + seq1 + '\line \line ')
         for i in first:
             file.write(i)
-            file2.write(re.sub(r'('+seq1_reg_rtf+r')', r'\cf2\1\cf1', re.sub(r'('+seq1_reg_rev_rtf+r')', r'\cf2\1\cf1', i)).replace('\n', '\line '))
+            file2.write(re.sub(r'('+seq1_reg_rtf+r')', r'\cf2\1\cf1',
+                               re.sub(r'('+seq1_reg_rev_rtf+r')',
+                                      r'\cf2\1\cf1', i)).replace('\n', '\line '))
         file.write('\n\nsecond: ' + seq2 + '\n\n')
         file2.write('\line \line second: ' + seq2 + '\line \line ')
         for i in second:
             file.write(i)
-            file2.write(re.sub(r'('+seq2_reg_rtf+r')', r'\cf2\1\cf1', re.sub(r'('+seq2_reg_rev_rtf+r')', r'\cf2\1\cf1', i)).replace('\n', '\line '))
+            file2.write(re.sub(r'('+seq2_reg_rtf+r')',
+                               r'\cf2\1\cf1', re.sub(r'('+seq2_reg_rev_rtf+r')',
+                                                     r'\cf2\1\cf1', i)).replace('\n', '\line '))
         file.write('\n\ntogether: \n\n')
         file2.write('\line \line together: \line \line ')
         for i in together:
@@ -274,7 +295,7 @@ def search(seq1='', seq2='', seq_type='loops', direction='f',
                         where_s.end() <= where_f.start()):
                     together.append(name + ' ' + sequence + '\n')
                     status = True
-            elif(bool(re.search(seq1_reg_rev, sequence)) and bool(re.search(seq2_reg, sequence))):
+            elif bool(re.search(seq1_reg_rev, sequence)) and bool(re.search(seq2_reg, sequence)):
 
                 f = re.compile(seq1_reg_rev)
                 s = re.compile(seq2_reg)
@@ -284,7 +305,7 @@ def search(seq1='', seq2='', seq_type='loops', direction='f',
                         where_s.end() <= where_f.start()):
                     together.append(name + ' ' + sequence + '\n')
                     status = True
-            elif(bool(re.search(seq1_reg, sequence)) and bool(re.search(seq2_reg_rev, sequence))):
+            elif bool(re.search(seq1_reg, sequence)) and bool(re.search(seq2_reg_rev, sequence)):
                 f = re.compile(seq1_reg)
                 s = re.compile(seq2_reg_rev)
                 where_f = f.search(sequence)
@@ -293,7 +314,7 @@ def search(seq1='', seq2='', seq_type='loops', direction='f',
                         where_s.end() <= where_f.start()):
                     together.append(name + ' ' + sequence + '\n')
                     status = True
-            elif(bool(re.search(seq1_reg_rev, sequence)) and bool(re.search(seq2_reg_rev, sequence))):
+            elif bool(re.search(seq1_reg_rev, sequence)) and bool(re.search(seq2_reg_rev, sequence)):
                 f = re.compile(seq1_reg_rev)
                 s = re.compile(seq2_reg_rev)
                 where_f = f.search(sequence)
@@ -312,12 +333,16 @@ def search(seq1='', seq2='', seq_type='loops', direction='f',
         file2.write('\line \line first: ' + seq1 + '\line \line ')
         for i in first:
             file.write(i)
-            file2.write(re.sub(r'('+seq1_reg_rtf+r')', r'\cf2\1\cf1', re.sub(r'('+seq1_reg_rev_rtf+r')', r'\cf2\1\cf1', i)).replace('\n', '\line '))
+            file2.write(re.sub(r'('+seq1_reg_rtf+r')',
+                               r'\cf2\1\cf1', re.sub(r'('+seq1_reg_rev_rtf+r')',
+                                                     r'\cf2\1\cf1', i)).replace('\n', '\line '))
         file.write('\n\nsecond: ' + seq2 + '\n\n')
         file2.write('\line \line second: ' + seq2 + '\line \line ')
         for i in second:
             file.write(i)
-            file2.write(re.sub(r'('+seq2_reg_rtf+r')', r'\cf2\1\cf1', re.sub(r'('+seq2_reg_rev_rtf+r')', r'\cf2\1\cf1', i)).replace('\n', '\line '))
+            file2.write(re.sub(r'('+seq2_reg_rtf+r')',
+                               r'\cf2\1\cf1', re.sub(r'('+seq2_reg_rev_rtf+r')',
+                                                     r'\cf2\1\cf1', i)).replace('\n', '\line '))
         file.write('\n\ntogether: \n\n')
         file2.write('\line \line together: \line \line ')
         for i in together:
@@ -331,4 +356,4 @@ def search(seq1='', seq2='', seq_type='loops', direction='f',
     file2.close()
 
     mirnas.close()
-    return ([filename, filename2], status)
+    return [filename, filename2], status
