@@ -18,7 +18,7 @@ def main(inputfile, direction, database, results_folder, negative_file):
     if not database:
         database = 'loops'
     if not negative_file:
-        negative_file = './mirnamotif/hairpin.fa'
+        negative_file = './mirnamotif/sh.fa'
     click.echo("Filename with sequences:, {}".format(inputfile))
     click.echo("Direction:, {}".format(direction))
     click.echo("Results folder: {}".format(results_folder))

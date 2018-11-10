@@ -67,7 +67,6 @@ def create_loc():
                        (temp['concat'].str.contains('5p'))]
     single_mirna = temp[~((temp['concat'].str.contains('3p')) &
                         (temp['concat'].str.contains('5p')))]
-    joined.to_csv('temp_joined.csv', sep=';')
     joined_both = joined[joined['ID'].isin(both_mirnas.index.values)]
     joined_single = joined[joined['ID'].isin(single_mirna.index.values)]
 
@@ -309,9 +308,9 @@ def create_loc():
             print('not all records has the same orientation')
             return 1
     localizations = localizations.sort_values('Name')
-    localizations[localizations['Name'].str.startswith('hsa')].to_csv('./miR_loops_hsa', sep=' ',
+    localizations[localizations['Name'].str.startswith('hsa')].to_csv('./miR_linking_hsa', sep=' ',
                                                                       index=False, header=False)
-    localizations[localizations['Name'].str.startswith('mmu')].to_csv('./miR_loops_mmu', sep=' ',
+    localizations[localizations['Name'].str.startswith('mmu')].to_csv('./miR_linking_mmu', sep=' ',
                                                                       index=False, header=False)
-    localizations[localizations['Name'].str.startswith('ath')].to_csv('./miR_loops_ath', sep=' ',
+    localizations[localizations['Name'].str.startswith('ath')].to_csv('./miR_linking_ath', sep=' ',
                                                                       index=False, header=False)

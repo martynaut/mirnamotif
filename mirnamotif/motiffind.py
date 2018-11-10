@@ -22,10 +22,14 @@ def process_input(data, database):
             list_of_seq[seq_nr] = list_of_seq[seq_nr].decode("utf-8")
         if list_of_seq[seq_nr][0:3] in ['hsa', 'mmu', 'ath']:
             filename = None
-            if database == 'loops':
+            if database.split('_')[0] == 'loops':
                 filename = 'miR_loops_'+list_of_seq[seq_nr][0:3]
-            if database == 'sh':
+            if database.split('_')[0] == 'sh':
                 filename = 'miR_sh_'+list_of_seq[seq_nr][0:3]
+            if database.split('_')[0] == 'linking':
+                filename = 'miR_linking_'+list_of_seq[seq_nr][0:3]
+            if database.split('_')[0] == 'mature':
+                filename = 'miR_mature_'+list_of_seq[seq_nr][0:3]
             with open('./mirnamotif/'+filename) as db:
                 for line in db:
                     if list_of_seq[seq_nr].lower() == line.split(' ')[0]:

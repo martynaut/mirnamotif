@@ -21,8 +21,10 @@ Webserved is freely available at [http://mirnamotif.ibch.poznan.pl/](http://mirn
 
 ### CLI
 #### Database preparation
-Files with miRNAs, loops and pre-miRNAs are already build from `hairpin.fa` 
-but when needed they can be rebuild with new `hairpin.fa` file running
+Files with miRNAs, linking sequence, loops and pre-miRNAs are already build from `hairpin.fa`, `hsa.gff3`,
+ `mmu.gff3`, `ath.gff3` and `mature.fa`
+but when needed they can be rebuild with new `hairpin.fa`, `hsa.gff3`,
+ `mmu.gff3`, `ath.gff3` and `mature.fa` files (files need to be in `mirnamotif` folder) running
 `python ./mirnamotif/parser.py`
 #### Running mirnamotif - search for known motif
 
@@ -31,6 +33,14 @@ and `python ./mirnamotif/mirnamotif.py GGAG -s AGG` for two motifs
 search.
 
 To see options for this function please see `python mirnamotif/mirnamotif.py --help`
+
+Options are:
+`python ./mirnamotif/mirnamotif.py GGAG [-s AGG] [-t loops|sh|linking|mature]
+[-d f|fr] [-o True|False] [-db hsa|mmu|ath] [-fp file_prefix]`
+
+e.g.
+`python ./mirnamotif/mirnamotif.py GGAG -s AGG -t linking
+-d fr -o False -db mmu -fp mmu_linking`
 
 Results will be saved in `./mirnamotif/results/` localization with day and hour within filename.
 
@@ -49,7 +59,15 @@ should be loops or whole pre-miRNAs.
 
 To see options please see `python ./mirnamotif/mirnamotif_find.py --help`.
 
+Options are:
+`python ./mirnamotif/mirnamotif_find.py ./static/example_motif.txt [-d f|fr] 
+[-db sh|sh_ath|sh_mmu|sh_hsa|loops|loops_ath|loops_hsa|loops_mmu|mature|mature_ath|mature_hsa|mature_mmu|linking|linking_ath|linking_mmu|linking_hsa]
+[-f ./results/new_meme_results] [-n directory_to_negative_sequences]`
 
+Please remember that `-n` overwrites `-db` option.
+
+e.g.
+`python ./mirnamotif/mirnamotif_find.py ./static/example_motif.txt -d fr -db linking_hsa -f ./results/new_meme_results`
 
 ## Authors
 Martyna O. Urbanek-Trzeciak

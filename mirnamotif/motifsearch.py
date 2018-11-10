@@ -88,6 +88,10 @@ def search(seq1='', seq2='', seq_type='loops', direction='f',
             file.write('overlap: No\n')
     if seq_type == 'loops':
         file.write('loops sequence \n')
+    elif seq_type == 'mature':
+        file.write('mature miRNA sequence \n')
+    elif seq_type == 'linking':
+        file.write('linking sequence \n')
     else:
         file.write('pre-miRNA sequence\n')
     if direction == 'f':
@@ -115,6 +119,10 @@ def search(seq1='', seq2='', seq_type='loops', direction='f',
             file2.write('overlap: No\line ')
     if seq_type == 'loops':
         file2.write('loops sequence\line ')
+    elif seq_type == 'mature':
+        file2.write('mature miRNA sequence\line')
+    elif seq_type == 'linking':
+        file2.write('linking sequence\line')
     else:
         file2.write('pre-miRNA sequence\line ')
     if direction == 'f':
@@ -128,7 +136,7 @@ def search(seq1='', seq2='', seq_type='loops', direction='f',
     else:
         file2.write('database: Arabidopsis thaliana\line ')
     file2.write(email + '\line ' * 3)
-    if seq_type in ['sh', 'loops']:
+    if seq_type in ['sh', 'loops', 'linking']:
         mirnas = open('./mirnamotif/miR_' + seq_type + '_' + database)
     else:
         mirnas = open('./mirnamotif/miR_mature_' + database)
@@ -295,6 +303,11 @@ def search(seq1='', seq2='', seq_type='loops', direction='f',
                         where_s.end() <= where_f.start()):
                     together.append(name + ' ' + sequence + '\n')
                     status = True
+                else:
+                    first.append(name + ' ' + sequence + '\n')
+                    second.append(name + ' ' + sequence + '\n')
+                    status = True
+
             elif bool(re.search(seq1_reg_rev, sequence)) and bool(re.search(seq2_reg, sequence)):
 
                 f = re.compile(seq1_reg_rev)
@@ -305,6 +318,10 @@ def search(seq1='', seq2='', seq_type='loops', direction='f',
                         where_s.end() <= where_f.start()):
                     together.append(name + ' ' + sequence + '\n')
                     status = True
+                else:
+                    first.append(name + ' ' + sequence + '\n')
+                    second.append(name + ' ' + sequence + '\n')
+                    status = True
             elif bool(re.search(seq1_reg, sequence)) and bool(re.search(seq2_reg_rev, sequence)):
                 f = re.compile(seq1_reg)
                 s = re.compile(seq2_reg_rev)
@@ -314,6 +331,10 @@ def search(seq1='', seq2='', seq_type='loops', direction='f',
                         where_s.end() <= where_f.start()):
                     together.append(name + ' ' + sequence + '\n')
                     status = True
+                else:
+                    first.append(name + ' ' + sequence + '\n')
+                    second.append(name + ' ' + sequence + '\n')
+                    status = True
             elif bool(re.search(seq1_reg_rev, sequence)) and bool(re.search(seq2_reg_rev, sequence)):
                 f = re.compile(seq1_reg_rev)
                 s = re.compile(seq2_reg_rev)
@@ -322,6 +343,10 @@ def search(seq1='', seq2='', seq_type='loops', direction='f',
                 if (where_f.end() <= where_s.start() or
                         where_s.end() <= where_f.start()):
                     together.append(name + ' ' + sequence + '\n')
+                    status = True
+                else:
+                    first.append(name + ' ' + sequence + '\n')
+                    second.append(name + ' ' + sequence + '\n')
                     status = True
             elif bool(re.search(seq1_reg, sequence)) or bool(re.search(seq1_reg_rev, sequence)):
                 first.append(name + ' ' + sequence + '\n')
