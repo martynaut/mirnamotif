@@ -53,7 +53,7 @@ repository, unpack the archive file and follow the instructions from INSTALL fil
 After meme installation you can look for new motifs using command
 `python ./mirnamotif/mirnamotif_find.py ./static/example_motif.txt -f ./results/new_meme_results -db sh`
 
-First argument is a file directory with names of precursors (e.g. `mmu-let-7k`) ro sequences.
+First argument is a file directory with names of precursors (e.g. `mmu-let-7k`) or sequences.
 Optional arguments include folder to save results, orientation and whether sequences searched 
 should be loops or whole pre-miRNAs.
 
