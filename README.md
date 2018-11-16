@@ -82,3 +82,7 @@ Institute of Bioorganic Chemistry, Polish Academy of Sciences, Noskowskiego 12/1
 ## Citation
 
 TBD
+
+## Contact
+
+For any issues, please create GitHub Issue or contact us under `mirnamotif at gmail.com`
