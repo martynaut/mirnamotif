@@ -25,7 +25,8 @@ def main(inputfile, direction, database, results_folder, negative_file):
     file = open(inputfile)
     data = file.read()
     list_of_seq = process_input(data, database)
-    results_file, list_of_motifs, status = motiffind(list_of_seq=list_of_seq, direction=direction, folder=results_folder,
+    results_file, list_of_motifs, status = motiffind(list_of_seq=list_of_seq, direction=direction,
+                                                     folder=results_folder,
                                                      negative_file=negative_file)
     if status:
         click.echo("Results saved in {}".format(results_file))
