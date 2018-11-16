@@ -1,11 +1,12 @@
 # mirnamotif
 
 miRNAmotif is an application that enables the user to 
-*  search for specific motifs in the terminal loop or in whole pre-miRNA 
+*  search for specific motifs in the terminal loop, linking sequence 
+(sequence between mature miRNAs from two arms), mature miRNA or in whole pre-miRNA 
 among sequences in a widely used miRNA database (miRBase) and 
 * predict enriched motifs within sequences provided by the user. 
 
-In particular, miRNAmotif is a simple and user-friendly application 
+miRNAmotif is a simple and user-friendly application 
 that gives researchers the opportunity to analyze known pre-miRNAs sequences 
 for the presence of specific motifs that can be recognized by protein regulators 
 of miRNA biogenesis.
@@ -46,7 +47,7 @@ Results will be saved in `./mirnamotif/results/` localization with day and hour 
 
 #### Running mirnamotif - search for new motif
 
-To be able to search for new motifs meme suite is needed. Please download 4.11.4 version 
+To be able to search for new motifs, meme suite is needed. Please download 4.11.4 version 
 of meme http://web.mit.edu/meme_v4.11.4/share/doc/download.html into the same folder as 
 repository, unpack the archive file and follow the instructions from INSTALL file.
 
@@ -75,6 +76,8 @@ Martyna O. Urbanek-Trzeciak
 Edyta Jaworska
 
 Wlodzimierz J. Krzyzosiak
+
+Institute of Bioorganic Chemistry, Polish Academy of Sciences, Noskowskiego 12/14, 61-704, Poznan, Poland
 
 ## Citation
 
