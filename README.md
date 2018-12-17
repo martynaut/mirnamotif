@@ -81,7 +81,13 @@ Institute of Bioorganic Chemistry, Polish Academy of Sciences, Noskowskiego 12/1
 
 ## Citation
 
-TBD
+Urbanek-Trzeciak, M.O.; Jaworska, E.; Krzyzosiak, W.J.
+
+miRNAmotif—A Tool for the Prediction of Pre-miRNA–Protein Interactions.
+
+Int. J. Mol. Sci. 2018, 19, 4075.
+
+https://doi.org/10.3390/ijms19124075
 
 ## Contact
 
