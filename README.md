@@ -92,3 +92,7 @@ https://doi.org/10.3390/ijms19124075
 ## Contact
 
 For any issues, please create GitHub Issue or contact us under `mirnamotif at gmail.com`
+
+## Funding
+
+This research was funded by the Polish National Science Centre (2015/17/N/NZ3/03629)
